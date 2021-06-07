@@ -1,0 +1,44 @@
+syntax="proto3";
+option go_package="/model";
+
+import "model/broker.proto";
+import "model/relay.proto";
+import "model/p2p.proto";
+
+package model;
+
+message ClientValidateData {
+    string token = 1;
+    map<string, string> data = 2;
+}
+
+message ClientData {
+    bool status = 1;
+    string message = 2;
+
+    string id = 3;
+    string address = 4;
+    string tag = 5;
+    map<string, string> data = 6;
+    
+    oneof ctx {
+        BrokerClientContext brokerCtx = 7;
+        RelayClientContext relayCtx = 8;
+        P2PClientContext p2pCtx = 9;
+    }
+}
+
+message ClientPing {
+    string time = 1;
+}
+
+message ClientSearch {
+    string id = 1;
+    string tag = 2;
+}
+
+message Clients {
+    bool status = 1;
+    string message = 2;
+    repeated string clients = 3;
+}

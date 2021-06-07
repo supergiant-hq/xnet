@@ -1,0 +1,15 @@
+syntax="proto3";
+option go_package="/model";
+
+package model;
+
+message StreamConnectionData {
+    string id = 1;
+    map<string, string> data = 2;
+}
+
+message StreamConnectionStatus {
+    string id = 1;
+    bool status = 2;
+    string message = 3;
+}

@@ -1,0 +1,10 @@
+syntax="proto3";
+option go_package="/model";
+
+package model;
+
+message RelayClientContext {
+    string connectionId = 1;
+    string sourcePeerId = 2;
+    string targetPeerId = 3;
+}

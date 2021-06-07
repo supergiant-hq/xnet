@@ -1,0 +1,78 @@
+syntax="proto3";
+option go_package="/model";
+
+package model;
+
+message P2PClientContext {
+    string connId = 1;
+    string peerId = 2;
+    bool active = 3;
+}
+
+message P2PData {
+    bytes data = 1;
+}
+
+message P2PPeerData {
+    string id = 1;
+    string address = 2;
+    repeated string addresses = 3;
+}
+
+message P2PConnectionRequest {
+    string id = 1;
+    string mode = 2;
+    string relayAddress = 3;
+
+    P2PPeerData peer = 4;
+}
+
+message P2PConnectionData {
+    string id = 1;
+    string mode = 2;
+
+    bool status = 3;
+    bool retry = 4;
+    string message  = 5;
+
+    P2PPeerData peer = 6;
+    string relayAddress = 7;
+}
+
+message P2PConnectionStatus {
+    string id = 1;
+    bool status = 2;
+    string message = 3;
+}
+
+message P2PRelayServers {
+    repeated string servers = 1;
+}
+
+message P2PRelayConnectionData {
+    bool status = 1;
+    string message  = 2;
+
+    string id = 3;
+    string mode = 4;
+
+    P2PPeerData peer = 5;
+    P2PPeerData sourcePeer = 6;
+    P2PPeerData targetPeer = 7;
+}
+
+message P2PRelayPeersStatus {
+    bool status = 1;
+    string message = 2;
+}
+
+message P2PRelayOpenStream {
+    map<string,string> data = 1;
+}
+
+message P2PRelayStreamInfo {
+    bool status = 1;
+    string message = 2;
+
+    string id = 3;
+}

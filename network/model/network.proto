@@ -1,0 +1,16 @@
+syntax="proto3";
+option go_package="/network/model";
+
+package model;
+
+message HeaderData {
+    enum Type {
+        NORMAL = 0;
+        ACK = 1;
+        ACKR = 2;
+    }
+    Type type = 1;
+    string id = 2;
+    string contentType = 3;
+    uint32 contentLength = 4;
+}
