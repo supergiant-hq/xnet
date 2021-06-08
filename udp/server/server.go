@@ -26,6 +26,10 @@ type ClientDisconnectedHandler func(*Client)
 // Called when a client sends a message
 type MessageHandler func(*Client, *network.Message)
 
+const (
+	KEY_CLIENT_ID = "__CLIENT_ID"
+)
+
 // Server
 type Server struct {
 	// Config
