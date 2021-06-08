@@ -153,7 +153,7 @@ func (c *Connection) connect() (err error) {
 
 		go func() {
 			<-c.p2pConn.exit
-			c.close("Exited")
+			c.Close("Exited")
 		}()
 
 	case p2p.ConnectionModeRelay:
@@ -169,12 +169,12 @@ func (c *Connection) connect() (err error) {
 
 		go func() {
 			<-c.relayConn.exit
-			c.close("Exited")
+			c.Close("Exited")
 		}()
 
 	default:
 		err = fmt.Errorf("invalid connection mode: %v", c.mode)
-		c.close("Invalid mode")
+		c.Close("Invalid mode")
 		return
 	}
 
@@ -213,7 +213,7 @@ func (c *Connection) IsConnected() bool {
 	}
 }
 
-func (c *Connection) close(reason string) {
+func (c *Connection) Close(reason string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 

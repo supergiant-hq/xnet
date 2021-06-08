@@ -173,7 +173,7 @@ func (m *Manager) ConnectByTag(tag string, mode p2p.ConnectionMode) (conn *Conne
 func (m *Manager) CloseConnection(cid string, reason string) {
 	if c, ok := m.conns.LoadAndDelete(cid); ok {
 		conn := c.(*Connection)
-		conn.close(reason)
+		conn.Close(reason)
 		m.log.Warnf("Connection closed (%s)", conn.id)
 	}
 }

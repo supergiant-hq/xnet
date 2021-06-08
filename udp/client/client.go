@@ -45,15 +45,16 @@ type Client struct {
 	// Listen Address
 	Addr *net.UDPAddr
 	// UDP Connection
+	// It's exposed as it's needed in the p2pc package
 	UDPConn *net.UDPConn
 	session quic.Session
 	channel *network.Channel
 	streams *sync.Map
 
-	// Client ID
+	// ID
 	Id        string
 	sessionId string
-	// Client Metadata
+	// Metadata
 	Data *model.ClientData
 	init bool
 

@@ -32,11 +32,11 @@ type Client struct {
 	channel   *network.Channel
 	streams   *sync.Map
 
-	// Client ID
+	// ID
 	Id string
-	// Client Remote Address
+	// Remote Address
 	Addr *net.UDPAddr
-	// Client Tag
+	// Tag
 	Tag            string
 	messageHandler map[network.MessageType]MessageHandler
 
