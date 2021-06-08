@@ -132,8 +132,8 @@ func (c *Client) Close(code int, reason string) {
 	if ec, ok := c.server.clients.Load(c.Id); ok && ec.(*Client).sessionId == c.sessionId {
 		c.server.clients.Delete(c.Id)
 	}
-	if c.server.clientDisconnectHandler != nil {
-		go c.server.clientDisconnectHandler(c)
+	if c.server.clientDisconnectedHandler != nil {
+		go c.server.clientDisconnectedHandler(c)
 	}
 
 	c.log.Warnf("Client connection closed: %s\n", reason)

@@ -15,13 +15,13 @@ import (
 )
 
 // Called on initial client connection
-type ClientConnectHandler func(*Client)
+type ClientConnectedHandler func(*Client)
 
 // Called when a new client connects to the server
 type ClientValidateHandler func(*net.UDPAddr, *model.ClientValidateData) (cd *model.ClientData, err error)
 
 // Called when a client disconnects
-type ClientDisconnectHandler func(*Client)
+type ClientDisconnectedHandler func(*Client)
 
 // Called when a client sends a message
 type MessageHandler func(*Client, *network.Message)
@@ -33,10 +33,10 @@ type Server struct {
 	// Clients Map
 	clients *sync.Map
 
-	clientConnectHandler ClientConnectHandler
+	clientConnectedHandler ClientConnectedHandler
 	// Client Validation Handler
-	ClientValidateHandler   ClientValidateHandler
-	clientDisconnectHandler ClientDisconnectHandler
+	ClientValidateHandler     ClientValidateHandler
+	clientDisconnectedHandler ClientDisconnectedHandler
 	// New Stream Handler
 	StreamHandler  udp.StreamHandler
 	messageHandler map[network.MessageType]MessageHandler
@@ -127,14 +127,14 @@ func (s *Server) Listen() (err error) {
 	return
 }
 
-// Set Client Connect handler
-func (s *Server) SetClientConnectHandler(handler ClientConnectHandler) {
-	s.clientConnectHandler = handler
+// Set Client Connected handler
+func (s *Server) SetClientConnectedHandler(handler ClientConnectedHandler) {
+	s.clientConnectedHandler = handler
 }
 
 // Set Client Disconnect Handler
-func (s *Server) SetClientDisconnectHandler(handler ClientDisconnectHandler) {
-	s.clientDisconnectHandler = handler
+func (s *Server) SetClientDisconnectedHandler(handler ClientDisconnectedHandler) {
+	s.clientDisconnectedHandler = handler
 }
 
 // Set New Stream Handler

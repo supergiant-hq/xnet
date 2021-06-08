@@ -212,7 +212,7 @@ func (m *Manager) newStreamHandler(client udp.Client, stream *udp.Stream) {
 	go m.streamHandler(client, stream)
 }
 
-func (m *Manager) clientDisconnectHandler(c *udps.Client) {
+func (m *Manager) clientDisconnectedHandler(c *udps.Client) {
 	ctx := c.Meta.GetP2PCtx()
 	if ctx == nil {
 		return

@@ -86,7 +86,7 @@ func (m *Manager) SetStreamHandler(handler udp.StreamHandler) {
 }
 
 func (m *Manager) registerHandlers() {
-	m.peerServer.SetClientDisconnectHandler(m.clientDisconnectHandler)
+	m.peerServer.SetClientDisconnectedHandler(m.clientDisconnectedHandler)
 	m.peerServer.RegisterHandler(model.MessageTypeP2PClientInit, m.clientInitHandler)
 	m.client.RegisterHandler(model.MessageTypeP2PConnectionRequest, m.connectionRequestHandler)
 	m.client.RegisterHandler(model.MessageTypeP2PConnectionStatus, m.connectionStatusHandler)

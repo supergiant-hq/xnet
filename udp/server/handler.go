@@ -61,8 +61,8 @@ func (c *Client) handleMessages(s *Server) {
 
 			c.log.Infoln("Client initialized:", c.String())
 
-			if s.clientConnectHandler != nil {
-				go s.clientConnectHandler(c)
+			if s.clientConnectedHandler != nil {
+				go s.clientConnectedHandler(c)
 			}
 
 			go c.handleStreams()
