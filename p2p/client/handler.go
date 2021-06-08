@@ -74,6 +74,8 @@ func (m *Manager) connectionRequestHandler(c *udpc.Client, msg *network.Message)
 		return
 	}
 	m.conns.Store(conn.id, conn)
+
+	conn.log.Infof("Created connection: %s", conn.String())
 }
 
 func (m *Manager) connectionStatusHandler(c *udpc.Client, msg *network.Message) {

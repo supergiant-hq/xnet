@@ -141,5 +141,5 @@ func (c *Client) Close(code int, reason string) {
 
 // Stringify
 func (c *Client) String() string {
-	return fmt.Sprintf("id(%s) with addr(%s) and tag(%v)", c.Id, c.Addr.String(), c.Tags)
+	return fmt.Sprintf("id(%s) with addr(%s)", c.Id, c.Addr.String())
 }
