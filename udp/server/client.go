@@ -36,8 +36,8 @@ type Client struct {
 	Id string
 	// Remote Address
 	Addr *net.UDPAddr
-	// Tag
-	Tag            string
+	// Tags
+	Tags           map[string]string
 	messageHandler map[network.MessageType]MessageHandler
 
 	tickerTimer *time.Timer
@@ -88,10 +88,10 @@ func (c *Client) RegisterHandler(mtype network.MessageType, handler MessageHandl
 	return
 }
 
-func (c *Client) initialize(id string, tag string, meta *model.ClientData) {
-	c.Id = id
-	c.Tag = tag
-	c.Meta = meta
+func (c *Client) initialize(data *model.ClientData) {
+	c.Id = data.Id
+	c.Tags = data.Tags
+	c.Meta = data
 	c.initialized = true
 }
 
@@ -141,5 +141,5 @@ func (c *Client) Close(code int, reason string) {
 
 // Stringify
 func (c *Client) String() string {
-	return fmt.Sprintf("id(%s) with addr(%s) and tag(%s)", c.Id, c.Addr.String(), c.Tag)
+	return fmt.Sprintf("id(%s) with addr(%s) and tag(%v)", c.Id, c.Addr.String(), c.Tags)
 }

@@ -18,7 +18,7 @@ message ClientData {
 
     string id = 3;
     string address = 4;
-    string tag = 5;
+    map<string, string> tags = 5;
     map<string, string> data = 6;
     
     oneof ctx {

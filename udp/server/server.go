@@ -184,10 +184,9 @@ func (s *Server) validateClient(c *Client, data *model.ClientValidateData) (cdat
 
 	cdata, err = s.ClientValidateHandler(c.Addr, data)
 	if err != nil {
-
 		return
 	}
-	c.initialize(cdata.Id, cdata.Tag, cdata)
+	c.initialize(cdata)
 
 	if oldrc, ok := s.clients.Load(c.Id); ok {
 		oldc := oldrc.(*Client)
@@ -214,7 +213,7 @@ func (s *Server) GetClientsWithTag(tag string) (clients []*Client) {
 	clients = []*Client{}
 	s.clients.Range(func(key, value interface{}) bool {
 		client := value.(*Client)
-		if client.Tag == tag {
+		if _, ok := client.Tags[tag]; ok {
 			clients = append(clients, client)
 		}
 		return true

@@ -31,8 +31,11 @@ func (rs *Server) clientValidateHandler(addr *net.UDPAddr, data *model.ClientVal
 	cd = &model.ClientData{
 		Id:      conn.getClientId(connData.Peer.Id),
 		Address: addr.String(),
-		Tag:     connData.Id,
-		Data:    data.Data,
+		Tags: map[string]string{
+			conn.id:          "true",
+			connData.Peer.Id: "true",
+		},
+		Data: data.Data,
 		Ctx: &model.ClientData_RelayCtx{
 			RelayCtx: &model.RelayClientContext{
 				ConnectionId: connData.Id,
