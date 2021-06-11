@@ -47,6 +47,7 @@ func (c *Channel) Stream() quic.Stream {
 }
 
 func (c *Channel) unmarshalData(mtype MessageType, bytes []byte) (data proto.Message, err error) {
+	c.log.Debugln("Unmarshalers found: ", len(c.unmarshalers))
 	for _, unmarshaler := range c.unmarshalers {
 		if data, err = unmarshaler(mtype); err == nil {
 			err = proto.Unmarshal(bytes, data)
