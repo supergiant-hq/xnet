@@ -193,7 +193,7 @@ func (c *Connection) notifyNewConnection() {
 	}
 }
 
-func (c *Connection) OpenMessageStream(mh MessageHandler) (ms *MessageStream, err error) {
+func (c *Connection) OpenMessageStream() (ms *MessageStream, err error) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()
 
