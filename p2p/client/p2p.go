@@ -113,7 +113,8 @@ func (c *p2pConn) connectToPeer(serverAddr *net.UDPAddr, connectCtx *connectPeer
 			TLS:  c.conn.mgr.client.Cfg.TLS.Clone(),
 			Quic: c.conn.mgr.client.Cfg.Quic.Clone(),
 
-			Token: c.conn.id,
+			Token:       c.conn.id,
+			Unmarshaler: c.conn.mgr.client.Cfg.Unmarshaler,
 		},
 		c.conn.mgr.client.Addr,
 		c.conn.mgr.client.UDPConn,

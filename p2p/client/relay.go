@@ -83,6 +83,7 @@ func (c *relayConn) connectRelayServer() (err error) {
 			Data: map[string]string{
 				p2p.KEY_CONNECTION_ID: c.conn.id,
 			},
+			Unmarshaler: c.conn.mgr.client.Cfg.Unmarshaler,
 		},
 	)
 	if err != nil {

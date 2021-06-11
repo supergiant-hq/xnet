@@ -55,9 +55,10 @@ func New(
 	if m.peerServer, err = udps.NewWithConnection(
 		m.log.Logger,
 		udps.Config{
-			Tag:  "P2P",
-			TLS:  client.Cfg.TLS.Clone(),
-			Quic: client.Cfg.Quic.Clone(),
+			Tag:         "P2P",
+			TLS:         client.Cfg.TLS.Clone(),
+			Quic:        client.Cfg.Quic.Clone(),
+			Unmarshaler: client.Cfg.Unmarshaler,
 		},
 		client.UDPConn,
 		m.clientValidateHandler,
