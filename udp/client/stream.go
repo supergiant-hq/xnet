@@ -42,8 +42,8 @@ func (c *Client) handleStreams(sessionId string) {
 }
 
 // Open a new Stream to the Server
-func (c *Client) OpenStream(data map[string]string) (cstream *udp.Stream, err error) {
-	c.log.Info("Opening stream to: ", c.Cfg.ServerAddr.String())
+func (c *Client) OpenStream(metadata map[string]string, data map[string]string) (cstream *udp.Stream, err error) {
+	c.log.Infoln("Opening stream to: ", c.Cfg.ServerAddr.String())
 	if !c.Connected {
 		err = fmt.Errorf("not connected")
 		return
@@ -55,12 +55,12 @@ func (c *Client) OpenStream(data map[string]string) (cstream *udp.Stream, err er
 	}
 
 	channel := network.NewChannel(c.log.Logger, stream, c.Cfg.Unmarshalers())
-	cstream, err = udp.NewStream(data, channel)
+	cstream, err = udp.NewStream(metadata, data, channel)
 	if err != nil {
 		return
 	}
 	c.streams.Store(cstream.Id, cstream)
-	c.log.Info("Opened stream: ", cstream.String())
+	c.log.Infoln("Opened stream: ", cstream.String())
 
 	return
 }

@@ -1,10 +1,10 @@
 # xNET
 
-xNET is a generic framework to build tools as simple as a network tunnel or as complex as an overlay network.
+xNET is a generic network framework to build tools as simple as a network tunnel or as complex as an overlay network.
 
 ## Modules
 
-- [Generic UDP Client and Server][udpreadme] over QUIC protocol
+- [Generic UDP Client and Server][udpreadme] using QUIC protocol
 - [P2P Network][p2preadme] with Broker, Relay and Client implementations
 - TUN Device for Linux, Darwin and Windows (TODO)
 
@@ -20,7 +20,6 @@ xNET depends on the following core packages
 
 ## TODO
 
-- Possible Refactors
 - Test TUN module
 - Examples
 

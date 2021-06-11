@@ -50,6 +50,9 @@ func (c *Connection) newRelayConn() (conn *relayConn, err error) {
 }
 
 func (c *relayConn) connect() (err error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	if err = c.connectRelayServer(); err != nil {
 		return
 	}
@@ -90,7 +93,7 @@ func (c *relayConn) connectRelayServer() (err error) {
 		return
 	}
 
-	client.SetStreamHandler(c.conn.mgr.newStreamHandler)
+	client.SetStreamHandler(c.conn.mgr.incomingStreamHandler)
 
 	c.client = client
 
@@ -103,34 +106,23 @@ func (c *relayConn) connectRelayServer() (err error) {
 }
 
 func (c *relayConn) awaitPeer() (err error) {
-	c.mutex.Lock()
-	defer c.mutex.Unlock()
-
 	msg := network.NewMessageWithAck(model.MessageTypeP2PRelayAwait, &model.NoDataMessage{}, RELAY_PEER_AWAIT_TIMEOUT)
 	_, err = c.client.Send(msg)
 	if err != nil {
 		c.log.Errorln("Peer await connection timeout:", err.Error())
 		return
 	}
+	c.log.Infoln("Peer connected to relay")
 
 	c.connected = true
-
-	// if c.conn.initiator {
-	// 	if _, err = c.OpenStream(map[string]string{
-	// 		p2p.KEY_STREAM_INTERNAL: "true",
-	// 	}); err != nil {
-	// 		c.log.Errorln("Peer open channel stream error:", err.Error())
-	// 		return
-	// 	}
-	// }
-
-	c.log.Infoln("Peer connected to relay")
 
 	return
 }
 
-// Open Stream to Peer
-func (c *relayConn) OpenStream(data map[string]string) (stream *udp.Stream, err error) {
+func (c *relayConn) openStream(metadata map[string]string, data map[string]string) (stream *udp.Stream, err error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	if !c.connected {
 		err = fmt.Errorf("not connected")
 		return
@@ -139,7 +131,8 @@ func (c *relayConn) OpenStream(data map[string]string) (stream *udp.Stream, err 
 	msg := network.NewMessageWithAck(
 		model.MessageTypeP2PRelayOpenStream,
 		&model.P2PRelayOpenStream{
-			Data: data,
+			Metadata: metadata,
+			Data:     data,
 		},
 		network.ConnectionTimeout,
 	)

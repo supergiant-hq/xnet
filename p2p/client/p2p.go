@@ -31,10 +31,10 @@ type connectPeerContext struct {
 type p2pConn struct {
 	conn *Connection
 
-	remoteClient *udps.Client
-	localClient  *udpc.Client
+	localClient      *udpc.Client
+	remoteClientChan chan *udps.Client
+	remoteClient     *udps.Client
 
-	await     chan bool
 	connected bool
 	exit      chan bool
 	closed    bool
@@ -46,9 +46,9 @@ func (c *Connection) newP2PConn() *p2pConn {
 	return &p2pConn{
 		conn: c,
 
-		await: make(chan bool, 1),
-		exit:  make(chan bool, 1),
-		log:   c.log,
+		remoteClientChan: make(chan *udps.Client, 1),
+		exit:             make(chan bool, 1),
+		log:              c.log,
 	}
 }
 
@@ -93,11 +93,9 @@ func (c *p2pConn) connect() (err error) {
 			}
 		}
 	} else {
-		if err = c.awaitFromPeer(); err != nil {
+		if err = c.awaitRemoteConnection(); err != nil {
 			return
 		}
-
-		c.conn.notifyNewConnection()
 	}
 
 	return
@@ -163,7 +161,7 @@ func (c *p2pConn) initClient(client *udpc.Client) (err error) {
 		return
 	}
 
-	client.SetStreamHandler(c.conn.mgr.newStreamHandler)
+	client.SetStreamHandler(c.conn.mgr.incomingStreamHandler)
 
 	c.localClient = client
 	c.connected = true
@@ -178,13 +176,17 @@ func (c *p2pConn) initClient(client *udpc.Client) (err error) {
 	return
 }
 
-func (c *p2pConn) awaitFromPeer() (err error) {
+func (c *p2pConn) awaitRemoteConnection() (err error) {
 	select {
-	case _, ok := <-c.await:
+	case remoteClient, ok := <-c.remoteClientChan:
 		if !ok {
 			err = fmt.Errorf("await peer channel closed")
 			break
 		}
+
+		c.remoteClient = remoteClient
+		c.connected = true
+
 	case <-time.After(time.Minute / 2):
 		err = fmt.Errorf("awaiting for peer timedout")
 	}
@@ -192,7 +194,7 @@ func (c *p2pConn) awaitFromPeer() (err error) {
 	return
 }
 
-func (c *p2pConn) initPeer(client *udps.Client) (err error) {
+func (c *p2pConn) checkinRemoteClient(client *udps.Client) (err error) {
 	if c.connected {
 		err = fmt.Errorf("connection already open")
 		return
@@ -201,11 +203,8 @@ func (c *p2pConn) initPeer(client *udps.Client) (err error) {
 		return
 	}
 
-	c.remoteClient = client
-	c.connected = true
-
 	select {
-	case c.await <- true:
+	case c.remoteClientChan <- client:
 	default:
 	}
 
@@ -230,17 +229,19 @@ func (c *p2pConn) punch(conn *net.UDPConn, addrs []*net.UDPAddr) {
 	}
 }
 
-// Open Stream to Peer
-func (c *p2pConn) OpenStream(data map[string]string) (stream *udp.Stream, err error) {
+func (c *p2pConn) openStream(metadata map[string]string, data map[string]string) (stream *udp.Stream, err error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	if !c.connected {
 		err = fmt.Errorf("not connected")
 		return
 	}
 
 	if c.conn.initiator {
-		return c.localClient.OpenStream(data)
+		return c.localClient.OpenStream(metadata, data)
 	} else {
-		return c.remoteClient.OpenStream(data)
+		return c.remoteClient.OpenStream(metadata, data)
 	}
 }
 

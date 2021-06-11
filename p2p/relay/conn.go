@@ -152,7 +152,9 @@ func (c *Connection) awaitPeer(client *udps.Client) (err error) {
 	return
 }
 
-func (c *Connection) openStream(client *udps.Client, data map[string]string) (stream *udp.Stream, peerStream *udp.Stream, err error) {
+func (c *Connection) openStream(client *udps.Client, streamInfo *model.P2PRelayOpenStream) (stream *udp.Stream, peerStream *udp.Stream, err error) {
+	streamInfo.Metadata[p2p.KEY_CONNECTION_ID] = c.id
+
 	defer func() {
 		if err != nil {
 			if stream != nil {
@@ -169,13 +171,13 @@ func (c *Connection) openStream(client *udps.Client, data map[string]string) (st
 		return
 	}
 
-	peerStream, err = peerClient.OpenStream(data)
+	peerStream, err = peerClient.OpenStream(streamInfo.Metadata, streamInfo.Data)
 	if err != nil {
 		return
 	}
 
-	data[p2p.KEY_INITIATOR] = "true"
-	stream, err = client.OpenStream(data)
+	streamInfo.Metadata[p2p.KEY_STREAM_IGNORE] = "true"
+	stream, err = client.OpenStream(streamInfo.Metadata, streamInfo.Data)
 	if err != nil {
 		return
 	}

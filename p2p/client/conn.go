@@ -99,6 +99,7 @@ func createConnection(log *logrus.Logger, mgr *Manager, peerId string, mode p2p.
 	mgr.log.Infof("Peer accepted connection request: %s", c.String())
 
 	if err = c.connect(); err != nil {
+		c.Close(err.Error())
 		return
 	}
 
@@ -129,6 +130,7 @@ func acceptConnection(log *logrus.Logger, mgr *Manager, connData *model.P2PConne
 	go func() {
 		if err := c.connect(); err != nil {
 			mgr.log.Errorf("Error waiting for peer connection: %s", err.Error())
+			c.Close(err.Error())
 		}
 	}()
 
@@ -136,6 +138,9 @@ func acceptConnection(log *logrus.Logger, mgr *Manager, connData *model.P2PConne
 }
 
 func (c *Connection) connect() (err error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
 	defer func() {
 		if err != nil {
 			c.log.Errorln("Connect Error:", err.Error())
@@ -174,31 +179,63 @@ func (c *Connection) connect() (err error) {
 
 	default:
 		err = fmt.Errorf("invalid connection mode: %v", c.mode)
-		c.Close("Invalid mode")
 		return
 	}
 
-	return
-}
+	c.notifyNewConnection()
 
-// Open Stream to Peer
-func (c *Connection) OpenStream(data map[string]string) (stream *udp.Stream, err error) {
-	if !c.IsConnected() {
-		err = fmt.Errorf("not connected")
-		return
-	}
-
-	switch c.mode {
-	case p2p.ConnectionModeP2P:
-		return c.p2pConn.OpenStream(data)
-	case p2p.ConnectionModeRelay:
-		return c.relayConn.OpenStream(data)
-	}
 	return
 }
 
 func (c *Connection) notifyNewConnection() {
-	go c.mgr.connectionHandler(c)
+	if c.mgr.connectionHandler != nil {
+		go c.mgr.connectionHandler(c)
+	}
+}
+
+func (c *Connection) OpenMessageStream(mh MessageHandler) (ms *MessageStream, err error) {
+	c.mutex.Lock()
+	defer c.mutex.Unlock()
+
+	if c.Closed {
+		err = fmt.Errorf("connection closed")
+		return
+	}
+
+	var stream *udp.Stream
+	if stream, err = c.openStream(map[string]string{
+		p2p.KEY_STREAM_MESSAGE: "true",
+	}, nil); err != nil {
+		return
+	}
+
+	ms = NewMessageStream(c, stream)
+
+	return
+}
+
+func (c *Connection) openStream(metadata map[string]string, data map[string]string) (stream *udp.Stream, err error) {
+	if metadata == nil {
+		metadata = map[string]string{}
+	}
+	metadata[p2p.KEY_CONNECTION_ID] = c.id
+	if data == nil {
+		data = map[string]string{}
+	}
+
+	switch c.mode {
+	case p2p.ConnectionModeP2P:
+		return c.p2pConn.openStream(metadata, data)
+	case p2p.ConnectionModeRelay:
+		return c.relayConn.openStream(metadata, data)
+	}
+	return
+
+}
+
+// Open Stream to Peer
+func (c *Connection) OpenStream(data map[string]string) (stream *udp.Stream, err error) {
+	return c.openStream(nil, data)
 }
 
 // If Connection is active
@@ -213,6 +250,7 @@ func (c *Connection) IsConnected() bool {
 	}
 }
 
+// Close Connection
 func (c *Connection) Close(reason string) {
 	c.mutex.Lock()
 	defer c.mutex.Unlock()

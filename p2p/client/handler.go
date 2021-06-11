@@ -13,6 +13,18 @@ import (
 	udps "github.com/supergiant-hq/xnet/udp/server"
 )
 
+// Client
+func (m *Manager) clientDisconnectedHandler(c *udps.Client) {
+	ctx := c.Meta.GetP2PCtx()
+	if ctx == nil {
+		return
+	}
+
+	if ctx.Active {
+		m.CloseConnection(ctx.ConnId, "Exited")
+	}
+}
+
 // Connection
 func (m *Manager) connectionRequestHandler(c *udpc.Client, msg *network.Message) {
 	var err error
@@ -56,11 +68,6 @@ func (m *Manager) connectionRequestHandler(c *udpc.Client, msg *network.Message)
 	creq := msg.Body.(*model.P2PConnectionRequest)
 
 	m.log.Infof("Connection request from peer id(%s) ip(%s)", creq.Peer.Id, creq.Peer.Address)
-
-	if c.Cfg.Token == creq.Peer.Id {
-		err = fmt.Errorf("cannot connect to yourself")
-		return
-	}
 
 	interfaceIPs, err := tun.GetInterfaceAddresses()
 	if err != nil {
@@ -110,7 +117,6 @@ func (m *Manager) connectionStatusHandler(c *udpc.Client, msg *network.Message) 
 	}
 }
 
-// P2P
 func (m *Manager) clientValidateHandler(addr *net.UDPAddr, data *model.ClientValidateData) (cdata *model.ClientData, err error) {
 	rconn, ok := m.conns.Load(data.Token)
 	if !ok {
@@ -183,44 +189,47 @@ func (m *Manager) clientInitHandler(c *udps.Client, msg *network.Message) {
 	}
 	conn := rconn.(*Connection)
 
-	if err = conn.p2pConn.initPeer(c); err != nil {
+	if err = conn.p2pConn.checkinRemoteClient(c); err != nil {
 		return
 	}
 	ctx.Active = true
 }
 
-func (m *Manager) newStreamHandler(client udp.Client, stream *udp.Stream) {
+func (m *Manager) incomingStreamHandler(client udp.Client, stream *udp.Stream) {
+	// Check if the stream should be ignored
 	// This key is present if the stream was opened using
 	// the OpenStream function of this client.
 	// Thus, we do not need to pass it to the custom handler
 	// as this is not really an incoming stream
-	if _, ok := stream.Data[p2p.KEY_INITIATOR]; ok {
+	if _, ok := stream.Metadata[p2p.KEY_STREAM_IGNORE]; ok {
 		return
 	}
 
-	// // Stream is a message stream.
-	// // It's opened at the beginning of the connection
-	// if _, ok := stream.Data[p2p.KEY_STREAM_INTERNAL]; ok {
-	// 	<-stream.Exit
-	// 	client.Close(0, "Internal Message Channel Exited")
-	// 	return
-	// }
+	// Stream is a message stream.
+	// It's opened to exchange structured messages (network.Message)
+	if _, ok := stream.Metadata[p2p.KEY_STREAM_MESSAGE]; ok {
+		if m.messageStreamHandler == nil {
+			m.log.Errorln("Incoming stream error: MessageStream handler not found")
+			stream.Close()
+			return
+		}
+
+		conn, ok := m.conns.Load(stream.Metadata[p2p.KEY_CONNECTION_ID])
+		if !ok {
+			m.log.Errorln("Incoming stream error: MessageStream connection not found")
+			stream.Close()
+			return
+		}
+
+		go m.messageStreamHandler(NewMessageStream(conn.(*Connection), stream))
+
+		return
+	}
 
 	// Custom stream handler
 	if m.streamHandler == nil {
-		m.log.Errorf("streamHandler is not provided")
+		m.log.Errorf("StreamHandler is not found")
 		return
 	}
 	go m.streamHandler(client, stream)
-}
-
-func (m *Manager) clientDisconnectedHandler(c *udps.Client) {
-	ctx := c.Meta.GetP2PCtx()
-	if ctx == nil {
-		return
-	}
-
-	if ctx.Active {
-		m.CloseConnection(ctx.ConnId, "Exited")
-	}
 }
