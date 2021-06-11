@@ -62,6 +62,11 @@ func (c *Client) SetConnectionHandler(handler p2pc.ConnectionHandler) {
 	c.p2pManager.SetConnectionHandler(handler)
 }
 
+// Set Message Stream Handler
+func (c *Client) SetMessageStreamHandler(handler p2pc.MessageStreamHandler) {
+	c.p2pManager.SetMessageStreamHandler(handler)
+}
+
 // Connect to Broker Server
 func (c *Client) Connect() (err error) {
 	if err = c.udpClient.Connect(); err != nil {
