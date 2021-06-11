@@ -47,12 +47,16 @@ func (mc *MessageStream) Listen(mh MessageHandler) (err error) {
 	}
 
 	go func() {
-		go func() {
+		defer func() {
 			recover()
 			mc.Close()
 		}()
 
 		for {
+			if mc.Closed {
+				return
+			}
+
 			msg, err := mc.stream.Channel().Read(true)
 			if err != nil {
 				mc.log.Warnln("Closing message stream:", err.Error())

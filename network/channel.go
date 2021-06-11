@@ -189,7 +189,6 @@ func (c *Channel) write(msg *Message) (err error) {
 
 // Send a message through the channel stream
 func (c *Channel) Send(msg *Message) (rmsg *Message, err error) {
-
 	if err = c.write(msg); err != nil {
 		return
 	}
