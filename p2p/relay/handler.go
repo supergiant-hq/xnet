@@ -45,8 +45,6 @@ func (rs *Server) clientValidateHandler(addr *net.UDPAddr, data *model.ClientVal
 		},
 	}
 
-	conn.peerConnBus.TryPub(connData.Peer.Id)
-
 	return
 }
 

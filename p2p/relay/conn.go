@@ -119,11 +119,15 @@ func (c *Connection) getPeerClient(client *udps.Client) (*udps.Client, error) {
 }
 
 func (c *Connection) awaitPeer(client *udps.Client) (err error) {
-	_, err = c.getPeerClient(client)
-	if err == nil {
+	// Notify the channel that the client is connected
+	c.peerConnBus.TryPub(client.Id)
+
+	// Check if the other peer is already connected
+	if _, cerr := c.getPeerClient(client); cerr == nil {
 		return
 	}
 
+	// Await connection from the other peer for (awaitPeertimeout) nanoseconds
 	ch, ok := c.peerConnBus.Sub(context.Background(), 1)
 	if !ok {
 		err = fmt.Errorf("error subscribing to broadcast channel")
@@ -136,7 +140,7 @@ func (c *Connection) awaitPeer(client *udps.Client) (err error) {
 		return
 	}
 	timeNow := time.Now()
-	endTime := time.Now().Add(awaitPeerTimeout)
+	endTime := timeNow.Add(awaitPeerTimeout)
 	for endTime.Unix()-timeNow.Unix() > 0 {
 		select {
 		case id := <-ch:
@@ -145,7 +149,7 @@ func (c *Connection) awaitPeer(client *udps.Client) (err error) {
 			}
 			timeNow = time.Now()
 		case <-time.After(endTime.Sub(timeNow)):
-			err = fmt.Errorf("await timeout")
+			err = fmt.Errorf("error awaiting peer")
 		}
 	}
 
