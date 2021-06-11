@@ -14,7 +14,7 @@ type MessageHandler func(mc *MessageStream, msg *network.Message)
 
 // Message Stream
 type MessageStream struct {
-	conn   *Connection
+	Conn   *Connection
 	stream *udp.Stream
 
 	// Exit channel
@@ -28,7 +28,7 @@ type MessageStream struct {
 // Create a MessageStream
 func NewMessageStream(conn *Connection, stream *udp.Stream) *MessageStream {
 	return &MessageStream{
-		conn:   conn,
+		Conn:   conn,
 		stream: stream,
 
 		Exit: make(chan bool, 1),
