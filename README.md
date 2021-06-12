@@ -29,7 +29,7 @@ xNET depends on the following core packages
 
 ## License
 
-The MIT License
+Apache License 2.0
 
 [//]: # "Links"
 [udpreadme]: https://github.com/supergiant-hq/xnet/tree/master/udp
