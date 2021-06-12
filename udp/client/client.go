@@ -197,11 +197,6 @@ func (c *Client) Connect() (err error) {
 	return
 }
 
-// func (c *Client) ConnectTo(serverAddr *net.UDPAddr) (err error) {
-// 	c.Cfg.ServerAddr = serverAddr
-// 	return c.Connect()
-// }
-
 func (c *Client) connect() (err error) {
 	c.reset()
 

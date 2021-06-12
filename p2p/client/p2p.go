@@ -167,13 +167,6 @@ func (c *p2pConn) initClient(client *udpc.Client) (err error) {
 	c.localClient = client
 	c.connected = true
 
-	// if _, err = c.OpenStream(map[string]string{
-	// 	p2p.KEY_STREAM_INTERNAL: "true",
-	// }); err != nil {
-	// 	c.log.Errorln("Peer open channel stream error:", err.Error())
-	// 	return
-	// }
-
 	return
 }
 
