@@ -79,16 +79,6 @@ func (s *Server) getConnection(connId string) (conn *Connection, err error) {
 	}
 	conn = rconn.(*Connection)
 
-	_, err = s.udpServer.GetClient(conn.getClientId(conn.sourcePeer.Id))
-	if err != nil {
-		return
-	}
-
-	_, err = s.udpServer.GetClient(conn.getClientId(conn.targetPeer.Id))
-	if err != nil {
-		return
-	}
-
 	return
 }
 
