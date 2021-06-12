@@ -18,10 +18,14 @@ xNET depends on the following core packages
 | songgao/water          | [View][pkgtun]  |
 | go-ping/ping           | [View][pkgping] |
 
+## Examples
+
+- [xTUNNEL][clixtunnel] - Tunnel TCP/UDP traffic between nodes
+
 ## TODO
 
-- Test TUN module
-- Examples
+- Finish TUN module
+- P2P auto failover to relay mode
 
 ## License
 
@@ -33,3 +37,4 @@ The MIT License
 [pkgquic]: https://github.com/lucas-clemente/quic-go
 [pkgtun]: https://github.com/songgao/water
 [pkgping]: https://github.com/go-ping/ping
+[clixtunnel]: https://github.com/supergiant-hq/xtunnel
