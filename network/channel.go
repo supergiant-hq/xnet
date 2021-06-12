@@ -37,7 +37,7 @@ func NewChannel(log *logrus.Logger, stream quic.Stream, unmarshalers []ChannelUn
 		unmarshalers: unmarshalers,
 		stream:       stream,
 		acks:         new(sync.Map),
-		log:          log.WithField("prefix", "PROTO"),
+		log:          log.WithField("prefix", "CHANNEL"),
 	}
 }
 
@@ -47,7 +47,6 @@ func (c *Channel) Stream() quic.Stream {
 }
 
 func (c *Channel) unmarshalData(mtype MessageType, bytes []byte) (data proto.Message, err error) {
-	c.log.Debugln("Unmarshalers found: ", len(c.unmarshalers))
 	for _, unmarshaler := range c.unmarshalers {
 		if data, err = unmarshaler(mtype); err == nil {
 			err = proto.Unmarshal(bytes, data)
@@ -177,13 +176,13 @@ func (c *Channel) write(msg *Message) (err error) {
 	}
 
 	c.wmutex.Lock()
-	bytes, err := c.stream.Write(send)
+	_, err = c.stream.Write(send)
 	c.wmutex.Unlock()
 	if err != nil {
 		return
 	}
 
-	c.log.Debugf("-> id(%v) of type(%s) with ack(%v) and size(%d/%d)", msg.Ctx.Id, msg.Ctx.Type, msg.Ctx.Ack, bytes, len(send))
+	c.log.Debugf("-> id(%v) of type(%s) with ack(%v)", msg.Ctx.Id, msg.Ctx.Type, msg.Ctx.Ack)
 	return
 }
 

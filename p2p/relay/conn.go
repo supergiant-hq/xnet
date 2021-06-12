@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	tickerDuration   = time.Second * 30
+	tickerDuration   = time.Second * 15
 	awaitPeerTimeout = time.Second * 15
 )
 
