@@ -29,7 +29,6 @@ type Client struct {
 // Create Client
 func New(
 	config Config,
-	connectionHandler p2pc.NewConnectionHandler,
 	streamHandler udp.StreamHandler,
 ) (c *Client, err error) {
 	logLevel := logrus.InfoLevel
@@ -47,7 +46,7 @@ func New(
 		return
 	}
 
-	if c.p2pManager, err = p2pc.New(c.log, config.P2PConfig, c.udpClient, connectionHandler); err != nil {
+	if c.p2pManager, err = p2pc.New(c.log, config.P2PConfig, c.udpClient); err != nil {
 		return
 	}
 	c.p2pManager.SetStreamHandler(streamHandler)
@@ -56,6 +55,16 @@ func New(
 	c.ConnectPeerByTag = c.p2pManager.ConnectByTag
 
 	return
+}
+
+// Set New Connection Handler
+func (c *Client) SetConnectionHandler(handler p2pc.ConnectionHandler) {
+	c.p2pManager.SetConnectionHandler(handler)
+}
+
+// Set Message Stream Handler
+func (c *Client) SetMessageStreamHandler(handler p2pc.MessageStreamHandler) {
+	c.p2pManager.SetMessageStreamHandler(handler)
 }
 
 // Connect to Broker Server

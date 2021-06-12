@@ -29,7 +29,7 @@ func (c *Client) handleMessages(s *Server) {
 		msg, err := c.channel.Read(true)
 
 		if err != nil {
-			c.log.Warningln("Closing stream:", c.String(), err.Error())
+			c.log.Warnln("Closing message stream:", c.String(), err.Error())
 			c.Close(400, err.Error())
 			return
 		}

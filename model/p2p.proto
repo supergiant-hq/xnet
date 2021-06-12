@@ -67,7 +67,8 @@ message P2PRelayPeersStatus {
 }
 
 message P2PRelayOpenStream {
-    map<string,string> data = 1;
+    map<string, string> metadata = 1;
+    map<string, string> data = 2;
 }
 
 message P2PRelayStreamInfo {

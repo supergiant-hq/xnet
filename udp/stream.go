@@ -20,6 +20,8 @@ type Stream struct {
 	// Stream ID
 	Id      string
 	channel *network.Channel
+	// Stream Data
+	Metadata map[string]string
 	// Stream Metadata
 	Data        map[string]string
 	initialized bool
@@ -69,21 +71,22 @@ func HandleStream(logger *logrus.Logger, stream quic.Stream, unmarshalers []netw
 }
 
 // Wraps a channel into a Stream and initializes it
-func NewStream(data map[string]string, channel *network.Channel) (s *Stream, err error) {
-	return newStream(uuid.NewString(), data, channel, true)
+func NewStream(metadata map[string]string, data map[string]string, channel *network.Channel) (s *Stream, err error) {
+	return newStream(uuid.NewString(), metadata, data, channel, true)
 }
 
 // Wraps a channel into a Stream and does not initialize it
 // This function should be used when the stream is already initialized
 func NewStreamFromData(data *model.StreamConnectionData, channel *network.Channel) *Stream {
-	s, _ := newStream(data.Id, data.Data, channel, false)
+	s, _ := newStream(data.Id, data.Metadata, data.Data, channel, false)
 	return s
 }
 
-func newStream(id string, data map[string]string, channel *network.Channel, shouldInitialize bool) (s *Stream, err error) {
+func newStream(id string, metadata map[string]string, data map[string]string, channel *network.Channel, shouldInitialize bool) (s *Stream, err error) {
 	stream := &Stream{
 		Id:          id,
 		channel:     channel,
+		Metadata:    metadata,
 		Data:        data,
 		initialized: !shouldInitialize,
 
@@ -106,8 +109,9 @@ func (s *Stream) initialize() (err error) {
 	msg := network.NewMessageWithAck(
 		model.MessageTypeStreamConnectionData,
 		&model.StreamConnectionData{
-			Id:   s.Id,
-			Data: s.Data,
+			Id:       s.Id,
+			Metadata: s.Metadata,
+			Data:     s.Data,
 		},
 		network.RequestTimeout,
 	)

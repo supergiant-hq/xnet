@@ -45,8 +45,6 @@ func (rs *Server) clientValidateHandler(addr *net.UDPAddr, data *model.ClientVal
 		},
 	}
 
-	conn.peerConnBus.TryPub(connData.Peer.Id)
-
 	return
 }
 
@@ -80,16 +78,6 @@ func (s *Server) getConnection(connId string) (conn *Connection, err error) {
 		return
 	}
 	conn = rconn.(*Connection)
-
-	_, err = s.udpServer.GetClient(conn.getClientId(conn.sourcePeer.Id))
-	if err != nil {
-		return
-	}
-
-	_, err = s.udpServer.GetClient(conn.getClientId(conn.targetPeer.Id))
-	if err != nil {
-		return
-	}
 
 	return
 }
@@ -155,15 +143,15 @@ func (s *Server) openPeerStreamHandler(c *udps.Client, msg *network.Message) {
 		c.Send(rmsg)
 	}()
 
-	msgData := msg.Body.(*model.P2PRelayOpenStream)
-
 	connId := c.Meta.GetRelayCtx().ConnectionId
 	conn, err := s.getConnection(connId)
 	if err != nil {
 		return
 	}
 
-	if stream, _, err = conn.openStream(c, msgData.Data); err != nil {
+	msgData := msg.Body.(*model.P2PRelayOpenStream)
+
+	if stream, _, err = conn.openStream(c, msgData); err != nil {
 		return
 	}
 }

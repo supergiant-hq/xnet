@@ -10,7 +10,6 @@ import (
 	"github.com/supergiant-hq/xnet/network"
 	"github.com/supergiant-hq/xnet/p2p"
 	"github.com/supergiant-hq/xnet/udp"
-	"github.com/supergiant-hq/xnet/util"
 
 	"github.com/lucas-clemente/quic-go"
 	"github.com/sirupsen/logrus"
@@ -83,7 +82,7 @@ func New(log *logrus.Logger, cfg Config) (c *Client, err error) {
 		log:  log.WithField("prefix", fmt.Sprintf("UDPC-%s", cfg.Tag)),
 	}
 
-	if c.Addr, err = util.GetRandomUDPAddress(30000, 60000); err != nil {
+	if c.Addr, err = net.ResolveUDPAddr("udp", ":0"); err != nil {
 		return
 	}
 
@@ -197,11 +196,6 @@ func (c *Client) Connect() (err error) {
 
 	return
 }
-
-// func (c *Client) ConnectTo(serverAddr *net.UDPAddr) (err error) {
-// 	c.Cfg.ServerAddr = serverAddr
-// 	return c.Connect()
-// }
 
 func (c *Client) connect() (err error) {
 	c.reset()

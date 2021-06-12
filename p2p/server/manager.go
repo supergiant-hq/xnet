@@ -34,11 +34,11 @@ func New(log *logrus.Logger, server *udps.Server) (m *Manager, err error) {
 		log:    log.WithField("prefix", "P2P"),
 	}
 
-	m.log.Info("Registering P2P Manager...")
+	m.log.Infoln("Registering P2P Manager...")
 
 	m.registerHandlers()
 
-	m.log.Info("P2P Manager Registered")
+	m.log.Infoln("P2P Manager Registered")
 	return
 }
 

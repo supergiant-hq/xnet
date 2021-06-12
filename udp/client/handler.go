@@ -65,6 +65,7 @@ func (c *Client) handleMessages(sessionId string) {
 
 		msg, err := c.channel.Read(true)
 		if err != nil {
+			c.log.Warnln("Closing message stream:", c.String(), err.Error())
 			return
 		}
 

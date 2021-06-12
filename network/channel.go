@@ -37,7 +37,7 @@ func NewChannel(log *logrus.Logger, stream quic.Stream, unmarshalers []ChannelUn
 		unmarshalers: unmarshalers,
 		stream:       stream,
 		acks:         new(sync.Map),
-		log:          log.WithField("prefix", "PROTO"),
+		log:          log.WithField("prefix", "CHANNEL"),
 	}
 }
 
@@ -176,19 +176,18 @@ func (c *Channel) write(msg *Message) (err error) {
 	}
 
 	c.wmutex.Lock()
-	bytes, err := c.stream.Write(send)
+	_, err = c.stream.Write(send)
 	c.wmutex.Unlock()
 	if err != nil {
 		return
 	}
 
-	c.log.Debugf("-> id(%v) of type(%s) with ack(%v) and size(%d/%d)", msg.Ctx.Id, msg.Ctx.Type, msg.Ctx.Ack, bytes, len(send))
+	c.log.Debugf("-> id(%v) of type(%s) with ack(%v)", msg.Ctx.Id, msg.Ctx.Type, msg.Ctx.Ack)
 	return
 }
 
 // Send a message through the channel stream
 func (c *Channel) Send(msg *Message) (rmsg *Message, err error) {
-
 	if err = c.write(msg); err != nil {
 		return
 	}

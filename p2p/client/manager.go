@@ -18,7 +18,10 @@ import (
 )
 
 // Called on new Connection
-type NewConnectionHandler func(c *Connection)
+type ConnectionHandler func(c *Connection)
+
+// Called on new MessageStream
+type MessageStreamHandler func(ms *MessageStream)
 
 // P2P Client Manager
 type Manager struct {
@@ -26,9 +29,10 @@ type Manager struct {
 	peerServer *udps.Server
 	client     *udpc.Client
 
-	conns             *sync.Map
-	connectionHandler NewConnectionHandler
-	streamHandler     udp.StreamHandler
+	conns                *sync.Map
+	connectionHandler    ConnectionHandler
+	streamHandler        udp.StreamHandler
+	messageStreamHandler MessageStreamHandler
 
 	rnd *rand.Rand
 	log *logrus.Entry
@@ -39,28 +43,22 @@ func New(
 	log *logrus.Logger,
 	config Config,
 	client *udpc.Client,
-	connectionHandler NewConnectionHandler,
 ) (m *Manager, err error) {
 	m = &Manager{
-		client:            client,
-		conns:             new(sync.Map),
-		connectionHandler: connectionHandler,
-		rnd:               rand.New(rand.NewSource(time.Now().UnixNano())),
-		log:               log.WithField("prefix", "P2PM"),
+		client: client,
+		conns:  new(sync.Map),
+		rnd:    rand.New(rand.NewSource(time.Now().UnixNano())),
+		log:    log.WithField("prefix", "P2PM"),
 	}
-	m.log.Info("Registering P2P Manager...")
-
-	if m.connectionHandler == nil {
-		err = fmt.Errorf("connectionHandler must be provided")
-		return
-	}
+	m.log.Infoln("Registering P2P Manager...")
 
 	if m.peerServer, err = udps.NewWithConnection(
 		m.log.Logger,
 		udps.Config{
-			Tag:  "P2P",
-			TLS:  client.Cfg.TLS.Clone(),
-			Quic: client.Cfg.Quic.Clone(),
+			Tag:         "P2P",
+			TLS:         client.Cfg.TLS.Clone(),
+			Quic:        client.Cfg.Quic.Clone(),
+			Unmarshaler: client.Cfg.Unmarshaler,
 		},
 		client.UDPConn,
 		m.clientValidateHandler,
@@ -72,17 +70,27 @@ func New(
 		return
 	}
 
-	m.peerServer.SetStreamHandler(m.newStreamHandler)
+	m.peerServer.SetStreamHandler(m.incomingStreamHandler)
 
 	m.registerHandlers()
 
-	m.log.Info("P2P Manager Registered")
+	m.log.Infoln("P2P Manager Registered")
 	return
+}
+
+// Set New Connection Handler
+func (m *Manager) SetConnectionHandler(handler ConnectionHandler) {
+	m.connectionHandler = handler
 }
 
 // Set New Stream Handler
 func (m *Manager) SetStreamHandler(handler udp.StreamHandler) {
 	m.streamHandler = handler
+}
+
+// Set Message Stream Handler
+func (m *Manager) SetMessageStreamHandler(handler MessageStreamHandler) {
+	m.messageStreamHandler = handler
 }
 
 func (m *Manager) registerHandlers() {

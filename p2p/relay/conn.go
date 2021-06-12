@@ -20,7 +20,7 @@ import (
 )
 
 const (
-	tickerDuration   = time.Second * 30
+	tickerDuration   = time.Second * 15
 	awaitPeerTimeout = time.Second * 15
 )
 
@@ -119,11 +119,15 @@ func (c *Connection) getPeerClient(client *udps.Client) (*udps.Client, error) {
 }
 
 func (c *Connection) awaitPeer(client *udps.Client) (err error) {
-	_, err = c.getPeerClient(client)
-	if err == nil {
+	// Notify the channel that this client is connected
+	c.peerConnBus.TryPub(client.Id)
+
+	// Check if the other peer is already connected
+	if peerClient, _ := c.getPeerClient(client); peerClient != nil {
 		return
 	}
 
+	// Await connection from the other peer for (awaitPeertimeout) nanoseconds
 	ch, ok := c.peerConnBus.Sub(context.Background(), 1)
 	if !ok {
 		err = fmt.Errorf("error subscribing to broadcast channel")
@@ -136,23 +140,26 @@ func (c *Connection) awaitPeer(client *udps.Client) (err error) {
 		return
 	}
 	timeNow := time.Now()
-	endTime := time.Now().Add(awaitPeerTimeout)
+	endTime := timeNow.Add(awaitPeerTimeout)
 	for endTime.Unix()-timeNow.Unix() > 0 {
 		select {
 		case id := <-ch:
 			if id == peerId {
-				break
+				return
 			}
 			timeNow = time.Now()
 		case <-time.After(endTime.Sub(timeNow)):
-			err = fmt.Errorf("await timeout")
+			err = fmt.Errorf("error awaiting peer")
 		}
 	}
+	err = fmt.Errorf("error awaiting peer")
 
 	return
 }
 
-func (c *Connection) openStream(client *udps.Client, data map[string]string) (stream *udp.Stream, peerStream *udp.Stream, err error) {
+func (c *Connection) openStream(client *udps.Client, streamInfo *model.P2PRelayOpenStream) (stream *udp.Stream, peerStream *udp.Stream, err error) {
+	streamInfo.Metadata[p2p.KEY_CONNECTION_ID] = c.id
+
 	defer func() {
 		if err != nil {
 			if stream != nil {
@@ -169,13 +176,13 @@ func (c *Connection) openStream(client *udps.Client, data map[string]string) (st
 		return
 	}
 
-	peerStream, err = peerClient.OpenStream(data)
+	peerStream, err = peerClient.OpenStream(streamInfo.Metadata, streamInfo.Data)
 	if err != nil {
 		return
 	}
 
-	data[p2p.KEY_INITIATOR] = "true"
-	stream, err = client.OpenStream(data)
+	streamInfo.Metadata[p2p.KEY_STREAM_IGNORE] = "true"
+	stream, err = client.OpenStream(streamInfo.Metadata, streamInfo.Data)
 	if err != nil {
 		return
 	}
