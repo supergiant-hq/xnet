@@ -2,6 +2,10 @@
 
 xNET is a generic network framework to build tools as simple as a network tunnel or as complex as an overlay network.
 
+```sh
+go get github.com/supergiant-hq/xnet
+```
+
 ## Modules
 
 - [Generic UDP Client and Server][udpreadme] using QUIC protocol
@@ -21,11 +25,6 @@ xNET depends on the following core packages
 ## Examples
 
 - [xTUNNEL][clixtunnel] - Tunnel TCP/UDP traffic between nodes
-
-## TODO
-
-- Finish TUN module
-- P2P auto failover to relay mode
 
 ## License
 
