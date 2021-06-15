@@ -15,11 +15,11 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Called on connection to the server
-type ConnectedHandler func(reconnect bool)
-
 // Called to determine whether to connect to a Server
 type CanConnect func(tries int) bool
+
+// Called on connection to the server
+type ConnectedHandler func(reconnect bool)
 
 // Called to determine whether to reconnect to a Server
 type CanReconnect func(tries int) bool
@@ -35,8 +35,8 @@ type Client struct {
 	// Config
 	Cfg                 Config
 	canConnect          CanConnect
-	canReconnect        CanReconnect
 	connectedHandler    ConnectedHandler
+	canReconnect        CanReconnect
 	disconnectedHandler DisconnectedHandler
 	messageHandler      map[network.MessageType]MessageHandler
 	streamHandler       udp.StreamHandler
@@ -114,24 +114,24 @@ func NewWithConnection(log *logrus.Logger, cfg Config, addr *net.UDPAddr, udpCon
 	return
 }
 
-// Set Connected Handler
-func (c *Client) SetConnectedHandler(handler ConnectedHandler) {
-	c.connectedHandler = handler
-}
-
-// Set Disconnected Handler
-func (c *Client) SetDisconnectedHandler(handler DisconnectedHandler) {
-	c.disconnectedHandler = handler
-}
-
 // Set CanConnect Handler
 func (c *Client) SetCanConnectHandler(handler CanConnect) {
 	c.canConnect = handler
 }
 
+// Set Connected Handler
+func (c *Client) SetConnectedHandler(handler ConnectedHandler) {
+	c.connectedHandler = handler
+}
+
 // Set CanReconnect Handler
 func (c *Client) SetCanReconnectHandler(handler CanReconnect) {
 	c.canReconnect = handler
+}
+
+// Set Disconnected Handler
+func (c *Client) SetDisconnectedHandler(handler DisconnectedHandler) {
+	c.disconnectedHandler = handler
 }
 
 // Set New Stream Handler
