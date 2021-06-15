@@ -25,7 +25,10 @@ type ConnectedHandler func(reconnect bool)
 type CanReconnect func(tries int) bool
 
 // Called on disconnection from a Server
-type DisconnectedHandler func(reason string)
+type DisconnectedHandler func()
+
+// Called when client is closed
+type ClosedHandler func(reason string)
 
 // Called when a Server sends a message
 type MessageHandler func(*Client, *network.Message)
@@ -38,6 +41,7 @@ type Client struct {
 	connectedHandler    ConnectedHandler
 	canReconnect        CanReconnect
 	disconnectedHandler DisconnectedHandler
+	closedHandler       ClosedHandler
 	messageHandler      map[network.MessageType]MessageHandler
 	streamHandler       udp.StreamHandler
 
@@ -132,6 +136,11 @@ func (c *Client) SetCanReconnectHandler(handler CanReconnect) {
 // Set Disconnected Handler
 func (c *Client) SetDisconnectedHandler(handler DisconnectedHandler) {
 	c.disconnectedHandler = handler
+}
+
+// Set Closed Handler
+func (c *Client) SetClosedHandler(handler ClosedHandler) {
+	c.closedHandler = handler
 }
 
 // Set New Stream Handler
@@ -344,8 +353,8 @@ func (c *Client) Close(code int, reason string) {
 	}
 	c.Closed = true
 
-	if c.disconnectedHandler != nil {
-		go c.disconnectedHandler(reason)
+	if c.closedHandler != nil {
+		go c.closedHandler(reason)
 	}
 
 	c.log.Warnf("Connection to (%s) closed: %s\n", c.Cfg.ServerAddr.String(), reason)

@@ -53,6 +53,9 @@ func (c *Client) handlePings(sessionId string) {
 func (c *Client) handleMessages(sessionId string) {
 	defer func() {
 		recover()
+		if c.disconnectedHandler != nil {
+			go c.disconnectedHandler()
+		}
 		if !c.Closed {
 			c.reconnect()
 		}

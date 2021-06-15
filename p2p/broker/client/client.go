@@ -77,6 +77,11 @@ func (c *Client) SetDisconnectedHandler(handler udpc.DisconnectedHandler) {
 	c.udpClient.SetDisconnectedHandler(handler)
 }
 
+// Set Closed Handler
+func (c *Client) SetClosedHandler(handler udpc.ClosedHandler) {
+	c.udpClient.SetClosedHandler(handler)
+}
+
 // Set New Connection Handler
 func (c *Client) SetConnectionHandler(handler p2pc.ConnectionHandler) {
 	c.p2pManager.SetConnectionHandler(handler)
