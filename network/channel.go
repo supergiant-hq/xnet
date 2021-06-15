@@ -14,8 +14,6 @@ import (
 	"google.golang.org/protobuf/proto"
 )
 
-type acks = *sync.Map
-
 // Unmarshals protobuf encoded data depending on the MessageType
 type ChannelUnmarshaler func(mtype MessageType) (msg proto.Message, err error)
 
@@ -27,8 +25,10 @@ type Channel struct {
 	rmutex sync.Mutex
 	wmutex sync.Mutex
 
-	acks acks
-	log  *logrus.Entry
+	acks   map[string]chan *Message
+	amutex sync.Mutex
+
+	log *logrus.Entry
 }
 
 // Create a new channel
@@ -36,7 +36,7 @@ func NewChannel(log *logrus.Logger, stream quic.Stream, unmarshalers []ChannelUn
 	return &Channel{
 		unmarshalers: unmarshalers,
 		stream:       stream,
-		acks:         new(sync.Map),
+		acks:         make(map[string]chan *Message),
 		log:          log.WithField("prefix", "CHANNEL"),
 	}
 }
@@ -109,11 +109,14 @@ func (c *Channel) Read(multiple bool) (msg *Message, err error) {
 		c.log.Debugf("<- id(%v) of type(%s) with ack(%v)", msg.Ctx.Id, msg.Ctx.Type, msg.Ctx.Ack)
 
 		if messageHeader.Type == model.HeaderData_ACKR {
-			if mv, ok := c.acks.LoadAndDelete(msg.Ctx.Id); ok {
-				if ch, ok := mv.(chan *Message); ok {
-					ch <- msg
+			c.amutex.Lock()
+			if ch, ok := c.acks[msg.Ctx.Id]; ok {
+				select {
+				case ch <- msg:
+				default:
 				}
 			}
+			c.amutex.Unlock()
 			if multiple {
 				continue
 			} else {
@@ -169,10 +172,6 @@ func (c *Channel) write(msg *Message) (err error) {
 	send = append(send, messageHeaderBytes[:]...)
 	send = append(send, messageBodyBytes[:]...)
 
-	if msg.Ctx.Ack {
-		c.acks.Store(msg.Ctx.Id, msg.Ctx.resChan)
-	}
-
 	c.wmutex.Lock()
 	_, err = c.stream.Write(send)
 	c.wmutex.Unlock()
@@ -186,7 +185,22 @@ func (c *Channel) write(msg *Message) (err error) {
 
 // Send a message through the channel stream
 func (c *Channel) Send(msg *Message) (rmsg *Message, err error) {
-	defer recover()
+	var resChan chan *Message
+	if msg.Ctx.Ack {
+		c.amutex.Lock()
+		resChan = make(chan *Message, 1)
+		c.acks[msg.Ctx.Id] = resChan
+		c.amutex.Unlock()
+	}
+
+	defer func() {
+		recover()
+		if msg.Ctx.Ack {
+			c.amutex.Lock()
+			delete(c.acks, msg.Ctx.Id)
+			c.amutex.Unlock()
+		}
+	}()
 
 	if err = c.write(msg); err != nil {
 		return
@@ -194,14 +208,13 @@ func (c *Channel) Send(msg *Message) (rmsg *Message, err error) {
 
 	if msg.Ctx.Ack {
 		select {
-		case resMsg, ok := <-msg.Ctx.resChan:
+		case resMsg, ok := <-resChan:
 			if !ok {
 				err = fmt.Errorf("response channel closed")
+				break
 			}
 			rmsg = resMsg
 		case <-time.After(msg.Opt.Timeout):
-			c.acks.Delete(msg.Ctx.Id)
-			msg.Dispose()
 			err = fmt.Errorf("request timeout")
 		}
 	}
@@ -219,10 +232,13 @@ func (c *Channel) SendAndRead(msg *Message) (rmsg *Message, err error) {
 
 // Closes the channel
 func (c *Channel) Close() {
-	c.acks.Range(func(k, v interface{}) bool {
-		close(v.(chan *Message))
-		c.acks.Delete(k)
-		return true
-	})
+	c.amutex.Lock()
+	defer c.amutex.Unlock()
+
+	for id, ch := range c.acks {
+		close(ch)
+		delete(c.acks, id)
+	}
+
 	c.stream.Close()
 }
