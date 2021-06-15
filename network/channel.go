@@ -185,6 +185,8 @@ func (c *Channel) write(msg *Message) (err error) {
 
 // Send a message through the channel stream
 func (c *Channel) Send(msg *Message) (rmsg *Message, err error) {
+	defer recover()
+
 	var resChan chan *Message
 	if msg.Ctx.Ack {
 		c.amutex.Lock()
@@ -192,15 +194,6 @@ func (c *Channel) Send(msg *Message) (rmsg *Message, err error) {
 		c.acks[msg.Ctx.Id] = resChan
 		c.amutex.Unlock()
 	}
-
-	defer func() {
-		recover()
-		if msg.Ctx.Ack {
-			c.amutex.Lock()
-			delete(c.acks, msg.Ctx.Id)
-			c.amutex.Unlock()
-		}
-	}()
 
 	if err = c.write(msg); err != nil {
 		return
@@ -217,6 +210,10 @@ func (c *Channel) Send(msg *Message) (rmsg *Message, err error) {
 		case <-time.After(msg.Opt.Timeout):
 			err = fmt.Errorf("request timeout")
 		}
+
+		c.amutex.Lock()
+		delete(c.acks, msg.Ctx.Id)
+		c.amutex.Unlock()
 	}
 
 	return
