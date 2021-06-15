@@ -57,6 +57,26 @@ func New(
 	return
 }
 
+// Set CanConnect Handler
+func (c *Client) SetCanConnectHandler(handler udpc.CanConnect) {
+	c.udpClient.SetCanConnectHandler(handler)
+}
+
+// Set Connected Handler
+func (c *Client) SetConnectedHandler(handler udpc.ConnectedHandler) {
+	c.udpClient.SetConnectedHandler(handler)
+}
+
+// Set CanReconnect Handler
+func (c *Client) SetCanReconnectHandler(handler udpc.CanReconnect) {
+	c.udpClient.SetCanReconnectHandler(handler)
+}
+
+// Set Disconnected Handler
+func (c *Client) SetDisconnectedHandler(handler udpc.DisconnectedHandler) {
+	c.udpClient.SetDisconnectedHandler(handler)
+}
+
 // Set New Connection Handler
 func (c *Client) SetConnectionHandler(handler p2pc.ConnectionHandler) {
 	c.p2pManager.SetConnectionHandler(handler)
