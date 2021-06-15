@@ -128,11 +128,9 @@ func (c *Channel) Read(multiple bool) (msg *Message, err error) {
 }
 
 func (c *Channel) write(msg *Message) (err error) {
-	msg.init()
+	defer recover()
 
-	defer func() {
-		recover()
-	}()
+	msg.init()
 
 	var (
 		messageType              model.HeaderData_Type
@@ -188,6 +186,8 @@ func (c *Channel) write(msg *Message) (err error) {
 
 // Send a message through the channel stream
 func (c *Channel) Send(msg *Message) (rmsg *Message, err error) {
+	defer recover()
+
 	if err = c.write(msg); err != nil {
 		return
 	}
@@ -212,6 +212,7 @@ func (c *Channel) Send(msg *Message) (rmsg *Message, err error) {
 // If the channel is not actively read, this function sends and reads a single message
 // This method SHOULD NOT BE USED if the channel is actively being read. Just use the Send function.
 func (c *Channel) SendAndRead(msg *Message) (rmsg *Message, err error) {
+	defer recover()
 	go c.Read(false)
 	return c.Send(msg)
 }
