@@ -310,7 +310,7 @@ func (c *Client) ID() string {
 
 // Send a Message to the Server
 func (c *Client) Send(msg *network.Message) (rmsg *network.Message, err error) {
-	if !c.Connected {
+	if c.channel == nil {
 		err = fmt.Errorf("not connected")
 		return
 	}
@@ -318,7 +318,7 @@ func (c *Client) Send(msg *network.Message) (rmsg *network.Message, err error) {
 }
 
 func (c *Client) sendAndRead(msg *network.Message) (rmsg *network.Message, err error) {
-	if !c.Connected {
+	if c.channel == nil {
 		err = fmt.Errorf("not connected")
 		return
 	}
