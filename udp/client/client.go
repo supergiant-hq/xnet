@@ -310,10 +310,18 @@ func (c *Client) ID() string {
 
 // Send a Message to the Server
 func (c *Client) Send(msg *network.Message) (rmsg *network.Message, err error) {
+	if !c.Connected {
+		err = fmt.Errorf("not connected")
+		return
+	}
 	return c.channel.Send(msg)
 }
 
 func (c *Client) sendAndRead(msg *network.Message) (rmsg *network.Message, err error) {
+	if !c.Connected {
+		err = fmt.Errorf("not connected")
+		return
+	}
 	return c.channel.SendAndRead(msg)
 }
 
