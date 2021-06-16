@@ -42,7 +42,7 @@ func (mc *MessageStream) Listen(mh MessageHandler) (err error) {
 		err = fmt.Errorf("message stream closed")
 		return
 	} else if mh == nil {
-		err = fmt.Errorf("MessageHandler not provided")
+		err = fmt.Errorf("messageHandler not provided")
 		return
 	}
 

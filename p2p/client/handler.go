@@ -126,7 +126,7 @@ func (m *Manager) clientValidateHandler(addr *net.UDPAddr, data *model.ClientVal
 	conn := rconn.(*Connection)
 
 	if conn.mode != p2p.ConnectionModeP2P {
-		err = fmt.Errorf("Connection not in P2P Mode")
+		err = fmt.Errorf("connection not in p2p mode")
 		return
 	} else if conn.p2pConn == nil {
 		err = fmt.Errorf("peer not ready")

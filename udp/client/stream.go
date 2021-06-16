@@ -45,7 +45,7 @@ func (c *Client) handleStreams(sessionId string) {
 func (c *Client) OpenStream(metadata map[string]string, data map[string]string) (cstream *udp.Stream, err error) {
 	c.log.Infoln("Opening stream to: ", c.Cfg.ServerAddr.String())
 	if !c.Connected {
-		err = fmt.Errorf("not connected")
+		err = udp.ErrorNotConnected
 		return
 	}
 

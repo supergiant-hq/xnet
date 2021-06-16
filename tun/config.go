@@ -19,7 +19,7 @@ type TunConfig struct {
 func NewTunConfig(mtu int, address string) (config TunConfig, err error) {
 	ip, cidr, err := net.ParseCIDR(address)
 	if err != nil {
-		return TunConfig{}, fmt.Errorf("[tunconfig] err with %v", err)
+		return TunConfig{}, fmt.Errorf("tunconfig: err with %v", err)
 	}
 	config = TunConfig{
 		MTU:  mtu,

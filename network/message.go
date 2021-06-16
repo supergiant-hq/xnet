@@ -2,7 +2,6 @@ package network
 
 import (
 	"fmt"
-	"sync"
 	"time"
 
 	"github.com/google/uuid"
@@ -26,20 +25,11 @@ type MessageContext struct {
 	Ackr bool
 	// Message Type
 	Type MessageType
-
-	// Response Channel
-	resChan chan *Message
 }
 
 func (c *MessageContext) init() {
 	if len(c.Id) == 0 {
 		c.Id = uuid.New().String()
-	}
-
-	if c.Ack {
-		if c.resChan == nil {
-			c.resChan = make(chan *Message, 1)
-		}
 	}
 }
 
@@ -63,11 +53,6 @@ type Message struct {
 	Opt MessageOptions
 	// Message Body
 	Body proto.Message
-
-	mutex sync.Mutex
-
-	// Message Disposed
-	Disposed bool
 }
 
 // New Message Options
@@ -121,7 +106,7 @@ func (m *Message) init() {
 // Generate message reply
 func (m *Message) GenReply(mtype MessageType, mbody proto.Message) (msg *Message, err error) {
 	if !m.Ctx.Ack {
-		err = fmt.Errorf("Message does not need a response")
+		err = ErrorGenRes
 		return
 	}
 
@@ -131,27 +116,6 @@ func (m *Message) GenReply(mtype MessageType, mbody proto.Message) (msg *Message
 	msg.init()
 
 	return
-}
-
-// Dispose
-func (m *Message) Dispose() {
-	defer func() {
-		recover()
-	}()
-
-	m.mutex.Lock()
-	defer m.mutex.Unlock()
-
-	if m.Disposed {
-		return
-	}
-
-	if m.Ctx.resChan != nil {
-		close(m.Ctx.resChan)
-		m.Ctx.resChan = nil
-	}
-
-	m.Disposed = true
 }
 
 // Stringify

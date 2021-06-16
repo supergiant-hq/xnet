@@ -228,7 +228,7 @@ func (c *p2pConn) openStream(metadata map[string]string, data map[string]string)
 	defer c.mutex.Unlock()
 
 	if !c.connected {
-		err = fmt.Errorf("not connected")
+		err = udp.ErrorNotConnected
 		return
 	}
 
