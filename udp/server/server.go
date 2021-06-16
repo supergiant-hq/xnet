@@ -205,7 +205,7 @@ func (s *Server) validateClient(c *Client, data *model.ClientValidateData) (cdat
 // Get connected Client by ID
 func (s *Server) GetClient(id string) (c *Client, err error) {
 	if rc, ok := s.clients.Load(id); !ok {
-		err = fmt.Errorf("Client not found: %s", id)
+		err = fmt.Errorf("client not found: %s", id)
 	} else {
 		c = rc.(*Client)
 	}

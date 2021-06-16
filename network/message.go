@@ -106,7 +106,7 @@ func (m *Message) init() {
 // Generate message reply
 func (m *Message) GenReply(mtype MessageType, mbody proto.Message) (msg *Message, err error) {
 	if !m.Ctx.Ack {
-		err = fmt.Errorf("Message does not need a response")
+		err = ErrorGenRes
 		return
 	}
 

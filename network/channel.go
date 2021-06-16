@@ -2,7 +2,6 @@ package network
 
 import (
 	"encoding/binary"
-	"fmt"
 	"io"
 	"sync"
 	"time"
@@ -58,11 +57,9 @@ func (c *Channel) unmarshalData(mtype MessageType, bytes []byte) (data proto.Mes
 
 // Read single or multiple messages from the channel stream
 func (c *Channel) Read(multiple bool) (msg *Message, err error) {
-	err = fmt.Errorf("panic")
+	err = ErrorPanic
 
-	defer func() {
-		recover()
-	}()
+	defer recover()
 
 	c.rmutex.Lock()
 	defer c.rmutex.Unlock()
@@ -131,9 +128,7 @@ func (c *Channel) Read(multiple bool) (msg *Message, err error) {
 }
 
 func (c *Channel) write(msg *Message) (err error) {
-	defer func() {
-		recover()
-	}()
+	defer recover()
 
 	msg.init()
 
@@ -187,9 +182,7 @@ func (c *Channel) write(msg *Message) (err error) {
 
 // Send a message through the channel stream
 func (c *Channel) Send(msg *Message) (rmsg *Message, err error) {
-	defer func() {
-		recover()
-	}()
+	defer recover()
 
 	var resChan chan *Message
 	if msg.Ctx.Ack {
@@ -207,12 +200,12 @@ func (c *Channel) Send(msg *Message) (rmsg *Message, err error) {
 		select {
 		case resMsg, ok := <-resChan:
 			if !ok {
-				err = fmt.Errorf("response channel closed")
+				err = ErrorChannelClosed
 				break
 			}
 			rmsg = resMsg
 		case <-time.After(msg.Opt.Timeout):
-			err = fmt.Errorf("request timeout")
+			err = ErrorTimeout
 		}
 
 		c.amutex.Lock()

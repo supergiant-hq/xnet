@@ -311,7 +311,7 @@ func (c *Client) ID() string {
 // Send a Message to the Server
 func (c *Client) Send(msg *network.Message) (rmsg *network.Message, err error) {
 	if c.channel == nil {
-		err = fmt.Errorf("not connected")
+		err = udp.ErrorNotConnected
 		return
 	}
 	return c.channel.Send(msg)
@@ -319,7 +319,7 @@ func (c *Client) Send(msg *network.Message) (rmsg *network.Message, err error) {
 
 func (c *Client) sendAndRead(msg *network.Message) (rmsg *network.Message, err error) {
 	if c.channel == nil {
-		err = fmt.Errorf("not connected")
+		err = udp.ErrorNotConnected
 		return
 	}
 	return c.channel.SendAndRead(msg)

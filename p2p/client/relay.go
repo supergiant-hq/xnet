@@ -125,7 +125,7 @@ func (c *relayConn) openStream(metadata map[string]string, data map[string]strin
 	defer c.mutex.Unlock()
 
 	if !c.connected {
-		err = fmt.Errorf("not connected")
+		err = udp.ErrorNotConnected
 		return
 	}
 

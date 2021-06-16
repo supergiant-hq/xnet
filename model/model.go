@@ -2,6 +2,7 @@
 package model
 
 import (
+	"errors"
 	"fmt"
 
 	"github.com/supergiant-hq/xnet/network"
@@ -32,6 +33,10 @@ const (
 	MessageTypeP2PRelayPeersStatus    = network.MessageType("p2p-relay-peers-status")
 	MessageTypeP2PRelayOpenStream     = network.MessageType("p2p-relay-open-stream")
 	MessageTypeP2PRelayStreamInfo     = network.MessageType("p2p-relay-stream-info")
+)
+
+var (
+	ErrorUnmarshalProto = errors.New("unmarshal proto model not found")
 )
 
 // Unmarshal data based on the MessageType
@@ -80,7 +85,7 @@ func Unmarshal(mtype network.MessageType) (body proto.Message, err error) {
 		body = &P2PRelayStreamInfo{}
 
 	default:
-		err = fmt.Errorf("unmarshal proto model not found for type(%v)", mtype)
+		err = fmt.Errorf("model: type(%v): %w", mtype, ErrorUnmarshalProto)
 	}
 	return
 }
