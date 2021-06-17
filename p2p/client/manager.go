@@ -45,6 +45,7 @@ func New(
 	client *udpc.Client,
 ) (m *Manager, err error) {
 	m = &Manager{
+		config: config,
 		client: client,
 		conns:  new(sync.Map),
 		rnd:    rand.New(rand.NewSource(time.Now().UnixNano())),

@@ -9,6 +9,7 @@ import (
 
 	"github.com/supergiant-hq/xnet/model"
 	"github.com/supergiant-hq/xnet/network"
+	"github.com/supergiant-hq/xnet/udp"
 	"github.com/supergiant-hq/xnet/util"
 
 	"github.com/google/uuid"
@@ -102,6 +103,10 @@ func (c *Client) ID() string {
 
 // Send a Message to Client
 func (c *Client) Send(msg *network.Message) (rmsg *network.Message, err error) {
+	if c.channel == nil {
+		err = udp.ErrorNotConnected
+		return
+	}
 	return c.channel.Send(msg)
 }
 

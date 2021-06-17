@@ -39,6 +39,7 @@ func PingIP(ip string, count int) (res PingResult, err error) {
 		res.Message = err.Error()
 		return
 	}
+	pinger.SetPrivileged(true)
 
 	pinger.Count = count
 	err = pinger.Run()
