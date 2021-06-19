@@ -1,6 +1,8 @@
 # xNET
 
-xNET is a generic network framework to build tools as simple as a network tunnel or as complex as an overlay network.
+[![ProjectStatus](https://img.shields.io/badge/status-experimental-orange)](README.md)
+
+xNET is a framework to build tools as simple as a network tunnel or as complex as an overlay network
 
 ```sh
 go get github.com/supergiant-hq/xnet
@@ -14,7 +16,7 @@ go get github.com/supergiant-hq/xnet
 
 ## Packages
 
-xNET depends on the following core packages
+This framework depends on the following core dependencies
 
 | Module                 | Link            |
 | ---------------------- | --------------- |
@@ -24,7 +26,7 @@ xNET depends on the following core packages
 
 ## Examples
 
-- [xTUNNEL][clixtunnel] - Tunnel TCP/UDP traffic between nodes
+- [xTunnel][clixtunnel] - Tunnel TCP/UDP traffic between nodes
 
 ## License
 
