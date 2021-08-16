@@ -6,7 +6,7 @@ require (
 	github.com/go-ping/ping v0.0.0-20210506233800-ff8be3320020
 	github.com/google/uuid v1.2.0
 	github.com/guiguan/caster v0.0.0-20191104051807-3736c4464f38
-	github.com/lucas-clemente/quic-go v0.21.0
+	github.com/lucas-clemente/quic-go v0.22.1
 	github.com/mattn/go-colorable v0.1.8 // indirect
 	github.com/mattn/go-isatty v0.0.13 // indirect
 	github.com/mgutz/ansi v0.0.0-20200706080929-d51e80ef957d // indirect
